@@ -11,31 +11,17 @@ Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by press
 #Step 1: Load packages
 ```{r}
 .libPaths("U:/R/win-library/3.5")
-#install.packages("dplyr")
 library(dplyr)
-#install.packages("tidyr")
 library(tidyr)
-#install.packages("ggplot2")
 library(ggplot2)
-#install.packages("RColorBrewer")
 library(RColorBrewer)
-#install.packages("forcats")
 library(forcats)
-#install.packages("tidytext")
 library(tidytext)
-#install.packages("scales")
 library(scales)
-#install.packages("spatstat")
 library(spatstat)
 ```
 
-#Step 2: Set working directory (sets for following chunks)
-```{r}
-#Change file path for different computed; remember to use forward slash
-knitr::opts_knit$set(root.dir = '/Users/chloecliffordastbury/Desktop/Analysis with new countries - May 2020')
-```
-
-#Step 3: Load data
+#Step 2: Load data
 ```{r}
 #Download data from FAOSTAT
 #Food supply - primary crops equivalent http://www.fao.org/faostat/en/#data/CC
@@ -49,7 +35,7 @@ fao <- rbind(faocrops1, faocrops2, faocrops3, faofish)
 rm(faocrops1, faocrops2, faocrops3, faofish)
 ```
  
-#Step 4: Obtain list of food items and item codes (see spreadsheet in teams)
+#Step 3: Obtain list of food items and item codes (see spreadsheet in teams)
 ```{r}
 #unique <- fao[match(unique(fao$Item), fao$Item),]
 #item <-unique[c(7,8)]
@@ -57,7 +43,7 @@ rm(faocrops1, faocrops2, faocrops3, faofish)
 ```
 
 
-#Step 5: Identify countries missing in earlier data years and substitute values
+#Step 4: Identify countries missing in earlier data years and substitute values
 ```{r}
 #From 2000 onwards, all 90 countries are present
 fbdg <- read.csv(file = 'Guidelines.csv')
@@ -170,7 +156,7 @@ year.wide$Country[is.na(year.wide$'1961')] #No countries should be missing
 rm(year, year.wide, sub, fbdg)
 ```
 
-#Step 6: Correct for waste, loss, etc.
+#Step 5: Correct for waste, loss, etc.
 ```{r}
 #Apply corrections to each subcategory
 #Food availability subcategory * edible portion proportion * cooking loss proportion 
@@ -192,7 +178,7 @@ fao$Value <- (1 - fao$Loss) * fao$Value
 rm(look)
 ```
 
-#Step 7: Collapse food supply values over four food categories
+#Step 6: Collapse food supply values over four food categories
 ```{r}
 fao$group <- 0
 fao$group[fao$Item.Code==2909] <- 1 #Group 1 = Sugars and sweeteners
@@ -341,6 +327,7 @@ guide <- guide[guide$Country!="Oman",]
 table(guide$Income..World.Bank.)
 table(guide$WB.region)
 table(guide$food.system)
+table(guide$WHO.region)
 
 #Alignment in 2013
 #wtglob #look at values for 2013
@@ -356,6 +343,11 @@ table(is.na(guide$fruitveg.guideline), guide$WB.region)
 table(is.na(guide$sugar.guideline), guide$WB.region)
 table(is.na(guide$meat.guideline), guide$WB.region)
 table(is.na(guide$fish.guideline), guide$WB.region)
+
+table(is.na(guide$fruitveg.guideline), guide$WHO.region)
+table(is.na(guide$sugar.guideline), guide$WHO.region)
+table(is.na(guide$meat.guideline), guide$WHO.region)
+table(is.na(guide$fish.guideline), guide$WHO.region)
 
 #Income (is.na = FALSE is the count of countries w/ guidelines)
 #Low & lower middle are combined in manuscript to 'lower' income
@@ -689,6 +681,38 @@ systemIQR$quarter <- round(systemIQR$quarter)
 systemIQR$threequarter <- round(systemIQR$threequarter)
 write.table(systemIQR, file = "systemIQR.txt", sep = ",", quote = FALSE, row.names = F)
 
+## By WHO region ##
+
+fruitvg <- vegnonmiss %>% 
+  group_by(WHO.region) %>%
+  summarise(median=weighted.median(fruitveg.guideline, Value.pop, na.rm=TRUE),
+            quarter=weighted.quarter(fruitveg.guideline, Value.pop, na.rm=TRUE),
+            threequarter=weighted.threequarter(fruitveg.guideline, Value.pop, na.rm=TRUE))
+
+meat <- meatnonmiss %>% 
+  group_by(WHO.region) %>%
+  summarise(median=weighted.median(meat.guideline, Value.pop, na.rm=TRUE),
+            quarter=weighted.quarter(meat.guideline, Value.pop, na.rm=TRUE),
+            threequarter=weighted.threequarter(meat.guideline, Value.pop, na.rm=TRUE))
+
+sugar <- sugnonmiss %>% 
+  group_by(WHO.region) %>%
+  summarise(median=weighted.median(sugar.guideline, Value.pop, na.rm=TRUE),
+            quarter=weighted.quarter(sugar.guideline, Value.pop, na.rm=TRUE),
+            threequarter=weighted.threequarter(sugar.guideline, Value.pop, na.rm=TRUE))
+
+fish <- fishnonmiss %>% 
+  group_by(WHO.region) %>%
+  summarise(median=weighted.median(fish.guideline, Value.pop, na.rm=TRUE),
+            quarter=weighted.quarter(fish.guideline, Value.pop, na.rm=TRUE),
+            threequarter=weighted.threequarter(fish.guideline, Value.pop, na.rm=TRUE))
+
+regionIQR <- rbind(fruitvg,sugar,meat,fish)
+regionIQR$median <- round(regionIQR$median)
+regionIQR$quarter <- round(regionIQR$quarter)
+regionIQR$threequarter <- round(regionIQR$threequarter)
+write.table(regionIQR, file = "WHOregionIQR.txt", sep = ",", quote = FALSE, row.names = F)
+
 #Alignment in 2013 (created below)
 #wt #look at values for 2013
 #wtinc
@@ -880,7 +904,7 @@ wtglobinc2 <- wtglobinc %>%
 wtglobinc2$Food <- as.factor((wtglobinc2$Food))
 ```
 
-#Step 15: Create weighted mean (by region)
+#Step 15a: Create weighted mean (by region)
 ```{r}
 #Create weighted mean of ratio (by income)
 fruitvg <- foodgroup %>%                                  # Weighted mean by group
@@ -943,6 +967,72 @@ wtglobreg2 <- wtglobreg %>%
 
 wtglobreg2$Food <- as.factor((wtglobreg2$Food))
 ```
+
+#Step 15b: Create weighted mean (by WHO region)
+```{r}
+#Create weighted mean of ratio (by WHO region)
+fruitvg <- foodgroup %>%                                  # Weighted mean by group
+  group_by(Year.x,WHO.region) %>% 
+  summarise(weighted.mean(fruitveg.ratio, Value.pop, na.rm=TRUE))
+
+sugar <- foodgroup %>%                                  # Weighted mean by group
+  group_by(Year.x,WHO.region) %>% 
+  summarise(weighted.mean(sugar.ratio, Value.pop, na.rm=TRUE))
+
+meat <- foodgroup %>%                                  # Weighted mean by group
+  group_by(Year.x,WHO.region) %>% 
+  summarise(weighted.mean(meat.ratio, Value.pop, na.rm=TRUE))
+
+fish <- foodgroup %>%                                  # Weighted mean by group
+  group_by(Year.x, WHO.region) %>% 
+  summarise(weighted.mean(fish.ratio, Value.pop, na.rm=TRUE))
+
+#Create data frame and rename variables
+wtreg <- data.frame(sugar, fish, meat, fruitvg)
+wtreg <- wtreg[c(1,2,3,6,9,12)]
+names(wtreg)[names(wtreg) == 'Year.x'] <-'Year'
+names(wtreg)[names(wtreg) == 'weighted.mean.sugar.ratio..Value.pop..na.rm...TRUE.'] <-'Sugar'
+names(wtreg)[names(wtreg) == 'weighted.mean.fish.ratio..Value.pop..na.rm...TRUE.'] <-'Fish and seafood'
+names(wtreg)[names(wtreg) == 'weighted.mean.meat.ratio..Value.pop..na.rm...TRUE.'] <-'Red and processed meat'
+names(wtreg)[names(wtreg) == 'weighted.mean.fruitveg.ratio..Value.pop..na.rm...TRUE.'] <-'Fruit and vegetables'
+names(wtreg)[names(wtreg) == 'WHO.region'] <-'Region'
+rm(meat, sugar, fish, fruitvg)
+
+wtreg2 <- wtreg %>%
+  pivot_longer(cols= -c(1,2), names_to = "Food", values_to = "Ratio")
+
+wtreg2$Food <- as.factor((wtreg2$Food))
+
+#Create weighted mean of ratio (all countries, global rec)
+fruitvg <- foodgroup %>%                                  # Weighted mean by group
+  group_by(Year.x, WHO.region) %>% 
+  summarise(weighted.mean(fruitveg.glob.ratio, Value.pop, na.rm=TRUE))
+
+sugar <- foodgroup %>%                                  # Weighted mean by group
+  group_by(Year.x, WHO.region) %>% 
+  summarise(weighted.mean(sugar.glob.ratio, Value.pop, na.rm=TRUE))
+
+meat <- foodgroup %>%                                  # Weighted mean by group
+  group_by(Year.x, WHO.region) %>% 
+  summarise(weighted.mean(meat.glob.ratio, Value.pop, na.rm=TRUE))
+
+#Create data frame and rename variables
+wtglobreg <- data.frame(sugar, meat, fruitvg)
+wtglobreg <- wtglobreg[c(1,2,3,6,9)]
+names(wtglobreg)[names(wtglobreg) == 'Year.x'] <-'Year'
+names(wtglobreg)[names(wtglobreg) == 'weighted.mean.sugar.glob.ratio..Value.pop..na.rm...TRUE.'] <-'Sugar'
+names(wtglobreg)[names(wtglobreg) == 'weighted.mean.meat.glob.ratio..Value.pop..na.rm...TRUE.'] <-'Red and processed meat'
+names(wtglobreg)[names(wtglobreg) == 'weighted.mean.fruitveg.glob.ratio..Value.pop..na.rm...TRUE.'] <-'Fruit and vegetables'
+names(wtglobreg)[names(wtglobreg) == 'WHO.region'] <-'Region'
+rm(meat, sugar, fruitvg)
+
+wtglobreg2 <- wtglobreg %>%
+  pivot_longer(cols= -c(1,2), names_to = "Food", values_to = "Ratio")
+
+wtglobreg2$Food <- as.factor((wtglobreg2$Food))
+```
+
+
 #Step 16: Create weighted mean (by food system type)
 ```{r}
 #Create weighted mean of ratio (by food system type)
@@ -1208,6 +1298,16 @@ p <- ggplot(wt3, aes(x=Year, y=Ratio, group=Region, color=Region))+
   scale_y_continuous(limits = c(0,5.1))+
   theme(legend.position = c(0.85,0.25))
 
+#WHO Europe
+p <- ggplot(wt3, aes(x=Year, y=Ratio, group=Region, color=Region))+
+  geom_line(size=1)+
+  facet_wrap(~Food, ncol=4)+
+  geom_hline(yintercept=1)+
+  labs(y = "Alignment (supply/guideline)", color="Region")+
+  scale_color_manual(values=c("#FF33FF", "#66FF00", "#33CCFF", "#000000", "#FF9933", "#FF0000"))+
+  #scale_y_continuous(limits = c(0,5.1))
+  theme(legend.position = c(0.85,0.25))
+
 ```
 #Step 20: Draw figures (by WHO region - not using)
 ```{r}
@@ -1414,5 +1514,79 @@ p <- ggplot()+
   scale_color_manual(values=c("#3AC2EF", "#FF0000", "#810001", "#686260"))+
   theme_bw()
 
+```
+
+#Step 24: WHO European region
+```{r}
+#Create data frames
+europe <- foodgroup[foodgroup$WHO.region=="Europe",c(2,3,13,16,20,21,22,23,24,25,26)]
+
+names(europe)[names(europe) == 'Year.x'] <-'Year'
+names(europe)[names(europe) == 'Country.x'] <-'Country'
+names(europe)[names(europe) == 'Income..World.Bank.'] <-'Income'
+
+who <- europe[,c(1,2,5,6,7,8)]
+whoglob <- europe[,c(1,2,9,10,11)]
+
+names(whoglob)[names(whoglob) == 'sugar.glob.ratio'] <-'Sugar'
+names(whoglob)[names(whoglob) == 'fruitveg.glob.ratio'] <-'Fruitvg'
+names(whoglob)[names(whoglob) == 'meat.glob.ratio'] <-'Meat'
+
+whoglob2 <- whoglob %>%
+  pivot_longer(cols= -c(1,2), names_to = "Food", values_to = "Ratio")
+
+whoglob2$Food <- as.factor((whoglob2$Food))
+
+names(who)[names(who) == 'sugar.ratio'] <-'Sugar'
+names(who)[names(who) == 'fruitveg.ratio'] <-'Fruitvg'
+names(who)[names(who) == 'meat.ratio'] <-'Meat'
+names(who)[names(who) == 'fish.ratio'] <-'Fish'
+
+who2 <- who %>%
+  pivot_longer(cols= -c(1,2), names_to = "Food", values_to = "Ratio")
+
+who2$Food <- as.factor((who2$Food))
+
+#Merge data frames
+#Create data set that combines national and global, put national first (7 figures)
+
+wt3 <- who2
+wtalt3 <- whoglob2
+wt3$Food <- as.character(wt3$Food)
+wt3$Food[wt3$Food == "Fish and seafood"] <-"Fish and seafood (National)"
+wt3$Food[wt3$Food == "Fruit and vegetables"] <-"Fruit and vegetables (National)"
+wt3$Food[wt3$Food == "Sugar"] <-"Sugar (National)"
+wt3$Food[wt3$Food == "Red and processed meat"] <-"Red and processed meat (National)"
+wtalt3$Food <- as.character(wtalt3$Food)
+wtalt3$Food[wtalt3$Food == "Fruit and vegetables"] <-"Fruit and vegetables (Global)"
+wtalt3$Food[wtalt3$Food == "Sugar"] <-"Sugar (Global)"
+wtalt3$Food[wtalt3$Food == "Red and processed meat"] <-"Red and processed meat (Global)"
+wt3 <- rbind(wt3, wtalt3)
+wt3$Food <- factor(wt3$Food, levels = c("Fruit and vegetables (National)", "Sugar (National)", "Red and processed meat (National)", "Fish and seafood (National)", "Fruit and vegetables (Global)", "Sugar (Global)", "Red and processed meat (Global)"))
+levels(wt3$Food)
+
+#Meat compared to national FBDGs
+meat <- who2[who2$Food=="Meat",]
+meat <- subset(meat, (Country == "Denmark" | Country =="Estonia" | Country == "France" | Country == "Greece" | Country == "Ireland" | Country == "Italy" | Country == "Malta"))
+p <- ggplot(meat, aes(x=Year, y=Ratio, group=Country, color=Country))+
+  geom_line(size=1)+
+  #facet_wrap(~Food, ncol=4)+
+  geom_hline(yintercept=1)+
+  labs(y = "Alignment (supply/guideline)", color="Country")+
+  scale_color_brewer(palette = "Paired")
+  #scale_y_continuous(limits = c(0,5.1))
+  #theme(legend.position = c(0.85,0.25))
+
+#Meat compared to global FBDGs
+meat <- whoglob2[whoglob2$Food=="Meat",]
+meat <- subset(meat, (Country == "Denmark" | Country =="Estonia" | Country == "France" | Country == "Greece" | Country == "Ireland" | Country == "Italy" | Country == "Malta"))
+p <- ggplot(meat, aes(x=Year, y=Ratio, group=Country, color=Country))+
+  geom_line(size=1)+
+  #facet_wrap(~Food, ncol=4)+
+  geom_hline(yintercept=1)+
+  labs(y = "Alignment (supply/guideline)", color="Country")+
+  scale_color_brewer(palette = "Paired")
+  #scale_y_continuous(limits = c(0,5.1))
+  #theme(legend.position = c(0.85,0.25))
 ```
 
