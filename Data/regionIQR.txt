@@ -1,0 +1,26 @@
+WB.region,median,quarter,threequarter
+East Asia and Pacific,620,534,648
+Europe and Central Asia,400,400,600
+Latin America & the Caribbean,406,400,435
+Middle East and North Africa,425,360,492
+North America,448,448,448
+South Asia,400,400,400
+Sub-Saharan Africa,400,400,400
+East Asia and Pacific,22,19,25
+Europe and Central Asia,30,30,30
+Latin America & the Caribbean,10,10,12
+Middle East and North Africa,58,58,58
+North America,58,58,58
+South Asia,22,22,22
+Sub-Saharan Africa,30,29,35
+East Asia and Pacific,65,65,65
+Europe and Central Asia,52,14,71
+Latin America & the Caribbean,54,47,56
+Middle East and North Africa,26,26,26
+Sub-Saharan Africa,80,80,80
+East Asia and Pacific,58,58,58
+Europe and Central Asia,32,32,40
+Latin America & the Caribbean,32,26,32
+Middle East and North Africa,26,26,26
+North America,32,32,32
+Sub-Saharan Africa,30,30,30

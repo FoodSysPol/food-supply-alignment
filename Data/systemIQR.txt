@@ -1,0 +1,21 @@
+food.system,median,quarter,threequarter
+Rural and Traditional,400,400,400
+Informal and Expanding,487,457,497
+Emerging and Diversifying,607,573,641
+Modernising and Formalising,480,400,600
+Industrialised and Consolidated,428,400,565
+NA,481,440,522
+Rural and Traditional,22,22,22
+Informal and Expanding,47,22,49
+Emerging and Diversifying,17,13,21
+Modernising and Formalising,30,15,30
+Industrialised and Consolidated,58,58,58
+NA,35,35,36
+Emerging and Diversifying,50,41,60
+Modernising and Formalising,23,22,31
+Industrialised and Consolidated,66,28,71
+Informal and Expanding,83,83,83
+Emerging and Diversifying,44,37,51
+Modernising and Formalising,32,32,32
+Industrialised and Consolidated,32,32,35
+NA,32,32,32
