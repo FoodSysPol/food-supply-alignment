@@ -1590,3 +1590,51 @@ p <- ggplot(meat, aes(x=Year, y=Ratio, group=Country, color=Country))+
   #theme(legend.position = c(0.85,0.25))
 ```
 
+#Step 25: Africa focus
+```{r}
+#Create data frame
+africa <- foodgroup[foodgroup$WB.region=="Sub-Saharan Africa",c(2,3,20:26)]
+
+names(africa)[names(africa) == 'Year.x'] <-'Year'
+names(africa)[names(africa) == 'Country.x'] <-'Country'
+
+national <- africa[,c(1:6)]
+global <- africa[,c(1,2,7:9)]
+
+names(global)[names(global) == 'sugar.glob.ratio'] <-'Sugar'
+names(global)[names(global) == 'fruitveg.glob.ratio'] <-'Fruitvg'
+names(global)[names(global) == 'meat.glob.ratio'] <-'Meat'
+
+
+global <- global %>%
+  pivot_longer(cols= -c(1,2), names_to = "Food", values_to = "Ratio")
+
+global$Food <- as.factor((global$Food))
+
+names(national)[names(national) == 'sugar.ratio'] <-'Sugar'
+names(national)[names(national) == 'fruitveg.ratio'] <-'Fruitvg'
+names(national)[names(national) == 'meat.ratio'] <-'Meat'
+names(national)[names(national) == 'fish.ratio'] <-'Fish'
+
+national <- national %>%
+  pivot_longer(cols= -c(1,2), names_to = "Food", values_to = "Ratio")
+
+national$Food <- as.factor((national$Food))
+
+#Draw figure (national)
+national <- national[!is.na(national$Ratio),]
+p <- ggplot(national, aes(x=Year, y=Ratio, group=Country, color=Country))+
+  geom_line()+
+  facet_wrap(~Food, ncol=4)+
+  geom_hline(yintercept=1)+
+  labs(y = "Alignment (supply/guideline)", color="Country")
+
+#Draw figure (national)
+p <- ggplot(global, aes(x=Year, y=Ratio, group=Country, color=Country))+
+  geom_line()+
+  facet_wrap(~Food)+
+  geom_hline(yintercept=1)+
+  labs(y = "Alignment (supply/guideline)", color="Country")
+
+```
+
